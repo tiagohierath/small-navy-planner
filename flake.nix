@@ -23,10 +23,16 @@
         };
 
         packages.default = pkgs.buildGoModule {
-          pname = "planner";
+          pname = "planit";
           version = "0.1.0";
           src = ./.;
           vendorHash = null;
+          # The Go binary is named after the module ("planner"); expose it as
+          # the `planit` command.
+          postInstall = ''
+            mv $out/bin/planner $out/bin/planit
+          '';
+          meta.mainProgram = "planit";
         };
       });
 }
