@@ -714,12 +714,17 @@ func (m *model) View() string {
 	// sit flush with no gaps, and any remainder from the division is handed out
 	// one column at a time so the row spans the screen exactly.
 	const chrome = 2
+	const selWeight = 2 // the centre (selected) column is this many normal columns wide
 	innerTotal := m.width - numDays*chrome
-	base := innerTotal / numDays
-	rem := innerTotal % numDays
+	// Weighted split: every column is 1 unit except the selected centre column,
+	// which is selWeight units, so the row holds (numDays-1)+selWeight units.
+	units := (numDays - 1) + selWeight
+	base := innerTotal / units
+	rem := innerTotal % units
 	if base < 6 {
 		base, rem = 6, 0
 	}
+	selIdx := numDays / 2 // centre column, always the selected day
 
 	boxHeight := m.height - 6 // header + footer + breathing room
 	if boxHeight < 5 {
@@ -731,9 +736,11 @@ func (m *model) View() string {
 
 	cols := make([]string, numDays)
 	for i := 0; i < numDays; i++ {
+		// The centre column is selWeight units wide and absorbs any remainder,
+		// so the row spans the screen exactly while staying symmetric around it.
 		colInner := base
-		if i < rem {
-			colInner++
+		if i == selIdx {
+			colInner = base*selWeight + rem
 		}
 
 		day := start.AddDate(0, 0, i)
